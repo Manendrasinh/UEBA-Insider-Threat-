@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<title>UEBA Dashboard</title>
+
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{background:#0d1117;color:#e6edf3;font-family:Arial,sans-serif}
+
+.header{padding:20px 24px 16px;border-bottom:1px solid #30363d}
+
+.header h1{font-size:20px;font-weight:500}
+
+.header p{font-size:13px;color:#8b949e;margin-top:4px}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:16px 24px}
+
+.stat{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:14px}
+
+.stat-label{font-size:12px;color:#8b949e;margin-bottom:6px}
+
+.stat-value{font-size:24px;font-weight:500}
+
+</style>
+
+</head>
+
+<body>
+
+<style>
+
+.agents{padding:0 24px 24px}
+
+.card{background:#161b22;border:1px solid #30363d;border-radius:12px;margin-bottom:16px;overflow:hidden}
+
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #30363d}
+
+.agent-info{display:flex;align-items:center;gap:12px}
+
+.avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500}
+
+.av-red{background:#3d1a1a;color:#f85149}
+
+.av-green{background:#1a3d2b;color:#3fb950}
+
+.av-yellow{background:#3d3010;color:#e3b341}
+
+.name{font-size:14px;font-weight:500}
+
+.subname{font-size:12px;color:#8b949e}
+
+.badge{font-size:12px;padding:4px 12px;border-radius:20px;font-weight:500}
+
+.badge-high{background:#3d1a1a;color:#f85149}
+
+.badge-med{background:#3d3010;color:#e3b341}
+
+.badge-low{background:#1a3d2b;color:#3fb950}
+
+.score-section{padding:14px 16px 0}
+
+.score-num{font-size:28px;font-weight:500}
+
+.score-high{color:#f85149}
+
+.score-med{color:#e3b3441}
+.score-low{color:#3fb950}
+.score-sub{font-size:12px;color:#8b949e;margin-top:2px;margin-bottom:12px}
+.bar-bg{height:6px;background:#21262d;border-radius:3px;margin-bottom:16px}
+.bar-fill{height:100%;border-radius:3px}
+.fill-high{background:#f85149}
+.fill-med{background:#e3b341}
+.fill-low{background:#3fb950}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #30363d}
+.metric{padding:12px 14px;border-right:1px solid #30363d}
+.metric:last-child{border-right:none}
+.metric-label{font-size:11px;color:#8b949e;margin-bottom:4px}
+.metric-value{font-size:16px;font-weight:500}
+</style>
+
+<div class="header">
+
+<h1>UEBA Insider Threat Dashboard</h1>
+
+<p>Real-time behavioural risk monitoring</p>
+
+</div>
+
+<div class="stats">
+
+<div class="stat"><div class="stat-label">Total alerts</div><div class="stat-value">{{ total }}</div></div>
+
+<div class="stat"><div class="stat-label">High risk agents</div><div class="stat-value" style="color:#f85149">{{ high_count }}</div></div>
+
+<div class="stat"><div class="stat-label">Agents monitored</div><div class="stat-value">{{ agent_count }}</div></div>
+
+</div>
+
+<div class="agents">
+
+{% for _, row in data.iterrows() %}
+
+{% set risk = row.risk_score %}
+
+{% if risk >= 60 %}{% set level = "High risk" %}{% set bc = "badge-high" %}{% set sc = "score-high" %}{% set fc = "fill-high" %}{% set ac = "av-red" %}
+
+{% elif risk >= 30 %}{% set level = "Medium risk" %}{% set bc = "badge-med" %}{% set sc = "score-med" %}{% set fc = "fill-med" %}{% set ac = "av-yellow" %}
+
+{% else %}{% set level = "Low risk" %}{% set bc = "badge-low" %}{% set sc = "score-low" %}{% set fc = "fill-low" %}{% set ac = "av-green" %}{% endif %}
+
+<div class="card">
+
+<div class="card-header">
+
+<div class="agent-info">
+
+<div class="avatar {{ ac }}">{{ row.agent[:2].upper() }}</div>
+
+<div><div class="name">{{ row.agent }}</div><div class="subname">{{ row.total_events|int }} total events</div></div>
+
+</div>
+
+<span class="badge {{ bc }}">{{ level }}</span>
+
+</div>
+
+<div class="score-section">
+
+<div class="score-num {{ sc }}">{{ "%.1f"|format(risk) }}<span style="font-size:14px;font-weight:400;color:#8b949e"> / 100</span></div>
+
+<div class="score-sub">Risk score</div>
+<div class="bar-bg"><div class="bar-fill {{ fc }}" style="width:{{ risk }}%"></div></div>
+</div>
+<div class="metrics">
+<div class="metric"><div class="metric-label">High severity</div><div class="metric-value">{{ row.high_severity_count|int }}</div></div>
+<div class="metric"><div class="metric-label">After hours</div><div class="metric-value">{{ row.after_hours_count|int }}</div></div>
+<div class="metric"><div class="metric-label">Unique rules</div><div class="metric-value">{{ row.unique_rules|int }}</div></div>
+<div class="metric"><div class="metric-label">Anomaly score</div><div class="metric-value">{{ "%.2f"|format(row.anomaly_score) }}</div></div>
+</div></div>
+{% endfor %}
+
+
+<div style="padding:0 24px 24px">
+
+<h2 style="font-size:16px;font-weight:500;margin-bottom:12px;color:#e6edf3">Recent alerts</h2>
+
+<div style="background:#161b22;border:1px solid #30363d;border-radius:12px;overflow:hidden">
+
+<table style="width:100%;border-collapse:collapse;font-size:13px">
+
+<thead>
+
+<tr style="border-bottom:1px solid #30363d">
+
+<th style="padding:10px 14px;text-align:left;color:#8b949e;font-weight:500">Agent</th>
+
+<th style="padding:10px 14px;text-align:left;color:#8b949e;font-weight:500">Rule</th>
+
+<th style="padding:10px 14px;text-align:left;color:#8b949e;font-weight:500">Severity</th>
+
+<th style="padding:10px 14px;text-align:left;color:#8b949e;font-weight:500">Time</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for alert in alerts %}
+
+<tr style="border-bottom:1px solid #21262d">
+
+<td style="padding:10px 14px;color:#e6edf3">{{ alert.agent }}</td>
+
+<td style="padding:10px 14px;color:#8b949e">{{ alert.rule_desc[:60] }}</td>
+
+<td style="padding:10px 14px">
+
+{% if alert.level >= 10 %}<span style="background:#3d1a1a;color:#f85149;padding:2px 8px;border-radius:20px;font-size:11px">{{ alert.level }} High</span>
+{% elif alert.level >= 7 %}<span style="background:#3d3010;color:#e3b341;padding:2px 8px;border-radius:20px;font-size:11px">{{ alert.level }} Med</span>
+{% else %}<span style="background:#1c2128;color:#8b949e;padding:2px 8px;border-radius:20px;font-size:11px">{{ alert.level }} Low</span>{% endif %}
+</td>
+<td style="padding:10px 14px;color:#8b949e">{{ alert.timestamp[11:19] }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+</div></body></html>
