@@ -12,7 +12,7 @@ INDEXER_URL = "https://localhost:9200"
 
 USER = "admin"
 
-PASS = ".z781D.cb*pV1g*7p3aBR++515++PX5p"
+from config import PASS
 
 
 
